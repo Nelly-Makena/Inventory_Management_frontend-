@@ -1,6 +1,5 @@
 import { ReactNode } from 'react';
-import { Sidebar } from './Sidebar';
-import { Header } from './Header';
+import { TopNav } from './TopNav';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -10,11 +9,11 @@ interface DashboardLayoutProps {
 export const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      <div className="ml-16 lg:ml-64 transition-all duration-300">
-        <Header title={title} />
-        <main className="p-6">{children}</main>
-      </div>
+      <TopNav />
+      <main className="container mx-auto px-4 py-6">
+        <h1 className="text-2xl font-bold text-foreground mb-6">{title}</h1>
+        {children}
+      </main>
     </div>
   );
 };
