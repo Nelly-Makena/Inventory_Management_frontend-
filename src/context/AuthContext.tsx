@@ -6,8 +6,6 @@ import {
   ReactNode,
 } from "react";
 import axios from "axios";
-import api from "@/api/axios";
- // Import configured axios instance
 
 interface User {
   id: number;
@@ -42,40 +40,26 @@ export const AuthProvider = ({ children }: Props) => {
     // Restore tokens and user on refresh
     const access = localStorage.getItem("access_token");
     const userData = localStorage.getItem("user");
-
-    if (access && userData) {
-      try {
-        setUser(JSON.parse(userData));
-      } catch (error) {
-        console.error("Failed to parse user data:", error);
-        localStorage.clear();
-      }
-    }
-
+    if (access && userData) setUser(JSON.parse(userData));
     setLoading(false);
   }, []);
 
   const signInWithGoogle = async (idToken: string) => {
     setLoading(true);
     try {
-      // Use base axios for login (no token needed yet)
       const res = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/api/auth_app/google/`,
-          { id_token: idToken },
-          { headers: { "Content-Type": "application/json" } }
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth_app/google/`,
+        { id_token: idToken },
+        { headers: { "Content-Type": "application/json" } },
       );
 
       const { access, refresh, user } = res.data;
 
-      // Store tokens and user data
       localStorage.setItem("access_token", access);
       localStorage.setItem("refresh_token", refresh);
       localStorage.setItem("user", JSON.stringify(user));
 
       setUser(user);
-    } catch (error) {
-      console.error("Google sign-in failed:", error);
-      throw error; // Re-throw so calling component can handle it
     } finally {
       setLoading(false);
     }
@@ -87,19 +71,16 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   return (
-      <AuthContext.Provider
-          value={{
-            user,
-            loading,
-            isAuthenticated: !!user,
-            signInWithGoogle,
-            logOut,
-          }}
-      >
-        {children}
-      </AuthContext.Provider>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        isAuthenticated: !!user,
+        signInWithGoogle,
+        logOut,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
 };
-
-// Export the configured api instance for use in other components
-export { api };
