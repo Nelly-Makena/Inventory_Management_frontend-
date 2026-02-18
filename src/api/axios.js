@@ -49,10 +49,15 @@ api.interceptors.response.use(
                     originalRequest.headers.Authorization = `Bearer ${access}`;
                     return api(originalRequest);
                 } catch (refreshError) {
-                    // Refresh failed, clear storage
+                    // Refresh failed, clear storage and redirect to login
                     localStorage.clear();
+                    window.location.href = "/login";
                     return Promise.reject(refreshError);
                 }
+            } else {
+                // No refresh token, clear storage and redirect
+                localStorage.clear();
+                window.location.href = "/login";
             }
         }
 
