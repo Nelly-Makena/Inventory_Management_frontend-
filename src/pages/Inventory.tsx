@@ -33,6 +33,7 @@ interface Product {
   supplier: number;
   supplier_name?: string;
   quantity: number;
+  cost_price: number;
   unit_price: number;
   min_stock_level: number;
   max_stock_level: number;
@@ -42,6 +43,7 @@ interface ProductForm {
   category: number | '';
   supplier: number | '';
   quantity: number;
+  cost_price: number;
   unit_price: number;
   min_stock_level: number;
   max_stock_level: number;
@@ -49,7 +51,8 @@ interface ProductForm {
 
 const emptyForm = (): ProductForm => ({
   name: '', category: '', supplier: '',
-  quantity: 0, unit_price: 0, min_stock_level: 10, max_stock_level: 100,
+  quantity: 0, cost_price: 0, unit_price: 0,
+  min_stock_level: 10, max_stock_level: 100,
 });
 
 const formatKES = (v: number) =>
@@ -80,12 +83,12 @@ const Inventory = () => {
   const [deleteOpen,      setDeleteOpen]      = useState(false);
 
   // form state
-  const [form,           setForm]           = useState<ProductForm>(emptyForm());
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [deletingProduct,setDeletingProduct]= useState<Product | null>(null);
-  const [categoryName,   setCategoryName]   = useState('');
-  const [supplierName,   setSupplierName]   = useState('');
-  const [saving,         setSaving]         = useState(false);
+  const [form,            setForm]            = useState<ProductForm>(emptyForm());
+  const [editingProduct,  setEditingProduct]  = useState<Product | null>(null);
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  const [categoryName,    setCategoryName]    = useState('');
+  const [supplierName,    setSupplierName]    = useState('');
+  const [saving,          setSaving]          = useState(false);
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -124,7 +127,6 @@ const Inventory = () => {
     return                        <Badge className="bg-success text-success-foreground">Normal</Badge>;
   };
 
-  // helpers to update individual form fields
   const setField = <K extends keyof ProductForm>(k: K, v: ProductForm[K]) =>
       setForm((f) => ({ ...f, [k]: v }));
 
@@ -151,13 +153,18 @@ const Inventory = () => {
     } finally { setSaving(false); }
   };
 
-  // open edit — pre-fill form
+  // open edit — pre-fill including cost_price
   const openEdit = (p: Product) => {
     setEditingProduct(p);
     setForm({
-      name: p.name, category: p.category, supplier: p.supplier,
-      quantity: p.quantity, unit_price: p.unit_price,
-      min_stock_level: p.min_stock_level, max_stock_level: p.max_stock_level,
+      name:            p.name,
+      category:        p.category,
+      supplier:        p.supplier,
+      quantity:        p.quantity,
+      cost_price:      p.cost_price,
+      unit_price:      p.unit_price,
+      min_stock_level: p.min_stock_level,
+      max_stock_level: p.max_stock_level,
     });
     setEditProductOpen(true);
   };
@@ -222,7 +229,12 @@ const Inventory = () => {
     } finally { setSaving(false); }
   };
 
-  // (sub-components remount on every render and break input focus)
+  // profit margin preview
+  const marginPreview = form.unit_price > 0 && form.cost_price > 0
+      ? `${(((form.unit_price - form.cost_price) / form.unit_price) * 100).toFixed(1)}%`
+      : '—';
+
+  // (avoids focus loss on re-render)
   const productFormFields = (
       <div className="grid gap-4 py-4">
         <div className="grid gap-2">
@@ -233,6 +245,7 @@ const Inventory = () => {
               onChange={(e) => setField('name', e.target.value)}
           />
         </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label>Category</Label>
@@ -263,6 +276,7 @@ const Inventory = () => {
             </Select>
           </div>
         </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label>Quantity</Label>
@@ -270,11 +284,38 @@ const Inventory = () => {
                    onChange={(e) => setField('quantity', Number(e.target.value))} />
           </div>
           <div className="grid gap-2">
-            <Label>Unit Price (KES)</Label>
-            <Input type="number" min={0} value={form.unit_price}
-                   onChange={(e) => setField('unit_price', Number(e.target.value))} />
+            {/* cost price = what you paid the supplier */}
+            <Label>Cost Price (KES)</Label>
+            <Input type="number" min={0} value={form.cost_price}
+                   placeholder="What you paid"
+                   onChange={(e) => setField('cost_price', Number(e.target.value))} />
           </div>
         </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-2">
+            {/* unit price = what you sell it for */}
+            <Label>Selling Price (KES)</Label>
+            <Input type="number" min={0} value={form.unit_price}
+                   placeholder="What you charge"
+                   onChange={(e) => setField('unit_price', Number(e.target.value))} />
+          </div>
+          <div className="grid gap-2">
+            {/* live margin so the owner can see profitability instantly */}
+            <Label>Profit Margin</Label>
+            <div className={cn(
+                'flex h-10 items-center rounded-md border px-3 text-sm',
+                marginPreview === '—'
+                    ? 'bg-muted text-muted-foreground'
+                    : Number(marginPreview) > 0
+                        ? 'bg-success/10 text-success'
+                        : 'bg-destructive/10 text-destructive'
+            )}>
+              {marginPreview}
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label>Min Stock Level</Label>
@@ -294,7 +335,7 @@ const Inventory = () => {
       <DashboardLayout title="Inventory Management">
         <div className="space-y-6">
 
-          {/* top bar — search, filter, action buttons */}
+          {/* top bar */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-1 gap-4">
               <div className="relative flex-1 max-w-md">
@@ -423,7 +464,8 @@ const Inventory = () => {
                       <TableHead>Product</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead className="text-center">Quantity</TableHead>
-                      <TableHead className="text-right">Unit Price</TableHead>
+                      <TableHead className="text-right">Cost Price</TableHead>
+                      <TableHead className="text-right">Selling Price</TableHead>
                       <TableHead className="text-center">Status</TableHead>
                       <TableHead>Supplier</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -432,7 +474,7 @@ const Inventory = () => {
                   <TableBody>
                     {loading ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                          <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
                             <div className="flex items-center justify-center gap-2">
                               <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                               Loading inventory…
@@ -441,7 +483,7 @@ const Inventory = () => {
                         </TableRow>
                     ) : filtered.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                          <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
                             {search || categoryFilter !== 'all'
                                 ? 'No products match your search.'
                                 : 'No products yet. Click "Add Product" to get started.'}
@@ -462,7 +504,12 @@ const Inventory = () => {
                           {p.quantity}
                         </span>
                           </TableCell>
-                          <TableCell className="text-right">{formatKES(Number(p.unit_price))}</TableCell>
+                          <TableCell className="text-right text-muted-foreground">
+                            {formatKES(Number(p.cost_price))}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatKES(Number(p.unit_price))}
+                          </TableCell>
                           <TableCell className="text-center">{statusBadge(p)}</TableCell>
                           <TableCell className="text-muted-foreground">
                             {p.supplier_name ?? suppliers.find((s) => s.id === p.supplier)?.name ?? '—'}
