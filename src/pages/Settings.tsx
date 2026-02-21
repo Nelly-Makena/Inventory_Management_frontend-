@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast";
 import { Store, Bell } from 'lucide-react';
 import api from "@/lib/axiosInstance";
+import { useAuth } from "@/context/AuthContext";
 
 interface BusinessProfile {
   name: string;
@@ -23,6 +24,8 @@ interface NotificationPrefs {
 
 const Settings = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
 
   // business profile
   const [profile, setProfile] = useState<BusinessProfile>({
@@ -40,11 +43,11 @@ const Settings = () => {
   const [isSavingPrefs,   setIsSavingPrefs]   = useState(false);
 
   useEffect(() => {
-    fetchProfile();
+    if (isAdmin) fetchProfile();
+    else setIsFetchingProfile(false);
     fetchPrefs();
   }, []);
 
-  // load business profile
   const fetchProfile = async () => {
     try {
       const res = await api.get<Partial<BusinessProfile>>("/api/business/profile/");
@@ -60,13 +63,12 @@ const Settings = () => {
     }
   };
 
-  // load notification preferences
   const fetchPrefs = async () => {
     try {
       const res = await api.get<NotificationPrefs>("/api/business/notification-preferences/");
       setPrefs(res.data);
     } catch {
-      // if endpoint doesn't exist yet, keep defaults
+      // keep defaults if endpoint not ready
     } finally {
       setIsFetchingPrefs(false);
     }
@@ -113,61 +115,63 @@ const Settings = () => {
       <DashboardLayout title="Settings">
         <div className="space-y-6 max-w-4xl">
 
-          {/* business info */}
-          <Card className="card-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Store className="h-5 w-5 text-primary" />
-                Business Information
-              </CardTitle>
-              <CardDescription>Manage your business details</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {isFetchingProfile ? (
-                  <div className="flex items-center gap-2 py-4">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                    <p className="text-sm text-muted-foreground">Loading profile…</p>
-                  </div>
-              ) : (
-                  <>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="businessName">Business Name</Label>
-                        <Input
-                            id="businessName"
-                            value={profile.name}
-                            onChange={handleProfileChange("name")}
-                            placeholder="e.g. Kamau's General Store"
-                        />
+          {/* business info — admin only */}
+          {isAdmin && (
+              <Card className="card-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Store className="h-5 w-5 text-primary" />
+                    Business Information
+                  </CardTitle>
+                  <CardDescription>Manage your business details</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {isFetchingProfile ? (
+                      <div className="flex items-center gap-2 py-4">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                        <p className="text-sm text-muted-foreground">Loading profile…</p>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="phone_number">Phone Number</Label>
-                        <Input
-                            id="phone_number"
-                            value={profile.phone_number}
-                            onChange={handleProfileChange("phone_number")}
-                            placeholder="+254 712 345 678"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="address">Business Address</Label>
-                      <Input
-                          id="address"
-                          value={profile.address}
-                          onChange={handleProfileChange("address")}
-                          placeholder="123 Tom Mboya Street, Nairobi"
-                      />
-                    </div>
-                    <Button onClick={handleSaveProfile} disabled={isSavingProfile}>
-                      {isSavingProfile ? "Saving…" : "Save Changes"}
-                    </Button>
-                  </>
-              )}
-            </CardContent>
-          </Card>
+                  ) : (
+                      <>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label htmlFor="businessName">Business Name</Label>
+                            <Input
+                                id="businessName"
+                                value={profile.name}
+                                onChange={handleProfileChange("name")}
+                                placeholder="e.g. Kamau's General Store"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="phone_number">Phone Number</Label>
+                            <Input
+                                id="phone_number"
+                                value={profile.phone_number}
+                                onChange={handleProfileChange("phone_number")}
+                                placeholder="+254 712 345 678"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="address">Business Address</Label>
+                          <Input
+                              id="address"
+                              value={profile.address}
+                              onChange={handleProfileChange("address")}
+                              placeholder="123 Tom Mboya Street, Nairobi"
+                          />
+                        </div>
+                        <Button onClick={handleSaveProfile} disabled={isSavingProfile}>
+                          {isSavingProfile ? "Saving…" : "Save Changes"}
+                        </Button>
+                      </>
+                  )}
+                </CardContent>
+              </Card>
+          )}
 
-          {/* notification preferences */}
+          {/* notification preferences — all users */}
           <Card className="card-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -186,7 +190,6 @@ const Settings = () => {
                   </div>
               ) : (
                   <>
-                    {/* low stock */}
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
                         <Label>Low Stock Alerts</Label>
@@ -200,8 +203,6 @@ const Settings = () => {
                       />
                     </div>
                     <Separator />
-
-                    {/* overstock */}
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
                         <Label>Overstock Warnings</Label>
@@ -214,7 +215,6 @@ const Settings = () => {
                           onCheckedChange={(v) => setPrefs((p) => ({ ...p, overstock_alerts: v }))}
                       />
                     </div>
-
                     <Button onClick={handleSavePrefs} disabled={isSavingPrefs}>
                       {isSavingPrefs ? "Saving…" : "Save Preferences"}
                     </Button>
