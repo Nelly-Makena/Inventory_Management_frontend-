@@ -118,7 +118,9 @@ export const TopNav = () => {
 
             {/* desktop nav */}
             <nav className="hidden lg:flex items-center gap-1">
-              {menuItems.map((item) => <NavItem key={item.path} item={item} />)}
+              {menuItems
+                  .filter((item) => item.path !== '/admin' || user?.role === 'ADMIN')
+                  .map((item) => <NavItem key={item.path} item={item} />)}
             </nav>
 
             {/* right side */}
@@ -174,29 +176,31 @@ export const TopNav = () => {
                 </SheetTrigger>
                 <SheetContent side="right" className="w-72">
                   <div className="flex flex-col gap-4 mt-8">
-                    {menuItems.map((item) => {
-                      const isActive = location.pathname === item.path;
-                      return (
-                          <NavLink
-                              key={item.path}
-                              to={item.path}
-                              className={cn(
-                                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
-                                  isActive
-                                      ? 'bg-primary text-primary-foreground'
-                                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                              )}
-                          >
-                            <item.icon className="h-5 w-5" />
-                            <span>{item.label}</span>
-                            {item.label === 'Notifications' && unreadCount > 0 && (
-                                <Badge className="ml-auto h-5 w-5 rounded-full p-0 flex items-center justify-center bg-destructive text-destructive-foreground text-xs">
-                                  {unreadCount}
-                                </Badge>
-                            )}
-                          </NavLink>
-                      );
-                    })}
+                    {menuItems
+                        .filter((item) => item.path !== '/admin' || user?.role === 'ADMIN')
+                        .map((item) => {
+                          const isActive = location.pathname === item.path;
+                          return (
+                              <NavLink
+                                  key={item.path}
+                                  to={item.path}
+                                  className={cn(
+                                      'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+                                      isActive
+                                          ? 'bg-primary text-primary-foreground'
+                                          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                  )}
+                              >
+                                <item.icon className="h-5 w-5" />
+                                <span>{item.label}</span>
+                                {item.label === 'Notifications' && unreadCount > 0 && (
+                                    <Badge className="ml-auto h-5 w-5 rounded-full p-0 flex items-center justify-center bg-destructive text-destructive-foreground text-xs">
+                                      {unreadCount}
+                                    </Badge>
+                                )}
+                              </NavLink>
+                          );
+                        })}
                   </div>
                 </SheetContent>
               </Sheet>
