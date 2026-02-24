@@ -114,7 +114,7 @@ const Notifications = () => {
         <div className="space-y-6">
 
           {/* header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-primary/10 p-2">
                 <Bell className="h-5 w-5 text-primary" />
@@ -133,7 +133,7 @@ const Notifications = () => {
               </div>
             </div>
             {unreadCount > 0 && (
-                <Button variant="outline" onClick={markAllAsRead} disabled={markingAll}>
+                <Button variant="outline" onClick={markAllAsRead} disabled={markingAll} className="w-full sm:w-auto">
                   <Check className="mr-2 h-4 w-4" />
                   {markingAll ? 'Marking…' : 'Mark all as read'}
                 </Button>
@@ -168,8 +168,8 @@ const Notifications = () => {
                             {getIcon(n.type)}
                           </div>
                           <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <div className="flex flex-wrap items-center gap-2">
                                 {/* no title field in model — derive one from type */}
                                 <h3 className="font-medium text-foreground">
                                   {n.type === 'LOW_STOCK' ? 'Low Stock Alert' : 'Overstock Warning'}
@@ -185,7 +185,7 @@ const Notifications = () => {
 
                             {/* actions — only show on unread */}
                             {!n.is_read && (
-                                <div className="mt-3 flex gap-2">
+                                <div className="mt-3 flex flex-wrap gap-2">
                                   <Button
                                       size="sm"
                                       variant="default"

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -81,6 +81,8 @@ const categories = [
 ];
 
 const Blog = () => {
+  const [selectedCategory, setSelectedCategory] = useState('All Posts');
+
   useEffect(() => {
     AOS.init({
       duration: 1000,
@@ -90,8 +92,19 @@ const Blog = () => {
     });
   }, []);
 
-  const featuredPost = posts.find(post => post.featured) || posts[0];
-  const regularPosts = posts.filter(post => !post.featured);
+  const filteredPosts = useMemo(() => {
+    if (selectedCategory === 'All Posts') return posts;
+    return posts.filter((post) => post.category === selectedCategory);
+  }, [selectedCategory]);
+
+  const featuredPost = useMemo(() => {
+    if (filteredPosts.length === 0) return null;
+    return filteredPosts.find((post) => post.featured) ?? filteredPosts[0];
+  }, [filteredPosts]);
+
+  const regularPosts = featuredPost
+    ? filteredPosts.filter((post) => post !== featuredPost)
+    : filteredPosts;
 
   return (
     <DashboardLayout title="Blog">
@@ -103,7 +116,7 @@ const Blog = () => {
           data-aos-duration="1200"
         >
           <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22hsl(var(--primary)%2F0.1)%22%20fill-opacity%3D%220.4%22%3E%3Cpath%20d%3D%22M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-50" />
-          <div className="relative px-8 py-16 md:py-24 text-center">
+          <div className="relative px-4 py-12 sm:px-8 sm:py-16 md:py-24 text-center">
             <div
               className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6"
               data-aos="fade-down"
@@ -113,7 +126,7 @@ const Blog = () => {
               StockKenya Blog
             </div>
             <h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6"
+              className="text-3xl sm:text-4xl lg:text-6xl font-bold text-foreground mb-6"
               data-aos="fade-up"
               data-aos-delay="400"
             >
@@ -130,174 +143,188 @@ const Blog = () => {
         </div>
 
         {/* Featured Post */}
-        <section>
-          <h2
-            className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2"
-            data-aos="fade-right"
-          >
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-            </span>
-            Featured Article
-          </h2>
-          <Card
-            className="overflow-hidden group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/20"
-            data-aos="zoom-in"
-            data-aos-duration="1000"
-          >
-            <div className="grid md:grid-cols-2 gap-0">
-              <div className="relative h-64 md:h-auto overflow-hidden" data-aos="slide-left" data-aos-delay="200">
-                <img
-                  src={featuredPost.image}
-                  alt={featuredPost.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:hidden" />
-                <div
-                  className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                />
-              </div>
-              <div className="p-8 flex flex-col justify-center" data-aos="slide-right" data-aos-delay="400">
-                <div className="flex items-center gap-3 mb-4" data-aos="fade-up" data-aos-delay="500">
-                  <span className="bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-medium">
-                    {featuredPost.category}
-                  </span>
-                  <span className="text-muted-foreground text-sm flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {new Date(featuredPost.date).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
-                  </span>
+        {featuredPost && (
+          <section>
+            <h2
+              className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2"
+              data-aos="fade-right"
+            >
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+              </span>
+              Featured Article
+            </h2>
+            <Card
+              className="overflow-hidden group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/20"
+              data-aos="zoom-in"
+              data-aos-duration="1000"
+            >
+              <div className="grid md:grid-cols-2 gap-0">
+                <div className="relative h-64 md:h-auto overflow-hidden" data-aos="slide-left" data-aos-delay="200">
+                  <img
+                    src={featuredPost.image}
+                    alt={featuredPost.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:hidden" />
+                  <div
+                    className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  />
                 </div>
-                <h3
-                  className="text-2xl md:text-3xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors"
-                  data-aos="fade-up"
-                  data-aos-delay="600"
-                >
-                  {featuredPost.title}
-                </h3>
-                <p
-                  className="text-muted-foreground mb-6 line-clamp-3"
-                  data-aos="fade-up"
-                  data-aos-delay="700"
-                >
-                  {featuredPost.excerpt}
-                </p>
-                <div
-                  className="flex items-center justify-between"
-                  data-aos="fade-up"
-                  data-aos-delay="800"
-                >
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <User className="h-4 w-4" />
-                    <span>{featuredPost.author}</span>
-                    <span className="mx-1">•</span>
-                    <Clock className="h-4 w-4" />
-                    <span>{featuredPost.readTime}</span>
+                <div className="p-6 sm:p-8 flex flex-col justify-center" data-aos="slide-right" data-aos-delay="400">
+                  <div className="flex flex-wrap items-center gap-2 mb-4" data-aos="fade-up" data-aos-delay="500">
+                    <span className="bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-medium">
+                      {featuredPost.category}
+                    </span>
+                    <span className="text-muted-foreground text-sm flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(featuredPost.date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </span>
                   </div>
-                  <Button className="gap-2 group-hover:bg-primary transition-colors" asChild>
-                    <Link to="/dashboard">
-                      Read Article
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </Link>
-                  </Button>
+                  <h3
+                    className="text-2xl md:text-3xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors"
+                    data-aos="fade-up"
+                    data-aos-delay="600"
+                  >
+                    {featuredPost.title}
+                  </h3>
+                  <p
+                    className="text-muted-foreground mb-6 line-clamp-3"
+                    data-aos="fade-up"
+                    data-aos-delay="700"
+                  >
+                    {featuredPost.excerpt}
+                  </p>
+                  <div
+                    className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+                    data-aos="fade-up"
+                    data-aos-delay="800"
+                  >
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                      <User className="h-4 w-4" />
+                      <span>{featuredPost.author}</span>
+                      <span className="mx-1">•</span>
+                      <Clock className="h-4 w-4" />
+                      <span>{featuredPost.readTime}</span>
+                    </div>
+                    <Button className="w-full sm:w-auto gap-2 group-hover:bg-primary transition-colors" asChild>
+                      <Link to="/dashboard">
+                        Read Article
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
-        </section>
+            </Card>
+          </section>
+        )}
 
         {/* Category Pills */}
-        <section className="flex flex-wrap gap-2" data-aos="fade-up" data-aos-delay="300">
-          {categories.map((category, index) => (
-            <Button
-              key={category}
-              variant={index === 0 ? "default" : "outline"}
-              size="sm"
-              className={`rounded-full transition-all ${
-                index === 0 ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/10'
-              }`}
-              data-aos="zoom-in"
-              data-aos-delay={100 + (index * 50)}
-            >
-              {category}
-            </Button>
-          ))}
+        <section className="flex gap-2 overflow-x-auto pb-2 sm:flex-wrap sm:pb-0" data-aos="fade-up" data-aos-delay="300">
+          {categories.map((category, index) => {
+            const isActive = category === selectedCategory;
+            return (
+              <Button
+                key={category}
+                variant={isActive ? "default" : "outline"}
+                size="sm"
+                className={`shrink-0 rounded-full transition-all ${
+                  isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/10'
+                }`}
+                data-aos="zoom-in"
+                data-aos-delay={100 + (index * 50)}
+                onClick={() => setSelectedCategory(category)}
+              >
+                {category}
+              </Button>
+            );
+          })}
         </section>
 
         {/* Blog Grid */}
         <section>
           <h2 className="text-2xl font-bold text-foreground mb-6" data-aos="fade-right">Latest Articles</h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {regularPosts.map((post, index) => (
-              <Card
-                key={index}
-                className="group overflow-hidden hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30"
-                data-aos="fade-up"
-                data-aos-delay={index * 100}
-                data-aos-duration="800"
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={post.image}
-                    alt={post.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute top-3 left-3">
-                    <span className="bg-white/90 backdrop-blur-sm text-foreground text-xs px-3 py-1 rounded-full font-medium shadow-sm">
-                      {post.category}
-                    </span>
-                  </div>
-                  <div
-                    className="absolute bottom-0 left-0 right-0 h-1 bg-primary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"
-                  />
-                </div>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                    <Calendar className="h-3 w-3" />
-                    <span>{new Date(post.date).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric'
-                    })}</span>
-                    <span className="mx-1">•</span>
-                    <Clock className="h-3 w-3" />
-                    <span>{post.readTime}</span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
-                    {post.title}
-                  </h3>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  <p className="text-muted-foreground text-sm line-clamp-3">
-                    {post.excerpt}
-                  </p>
+            {regularPosts.length === 0 ? (
+              <Card className="col-span-full border-dashed" data-aos="fade-up">
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  No articles found for {selectedCategory.toLowerCase()}.
                 </CardContent>
-                <CardFooter className="pt-0">
-                  <div className="flex items-center justify-between w-full pt-4 border-t border-border/50">
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <User className="h-3 w-3" />
-                      <span>{post.author}</span>
-                    </div>
-                    <Button variant="ghost" size="sm" className="gap-1 text-primary hover:text-primary hover:bg-primary/10 p-0 h-auto" asChild>
-                      <Link to="/dashboard">
-                        Read more
-                        <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
-                      </Link>
-                    </Button>
-                  </div>
-                </CardFooter>
               </Card>
-            ))}
+            ) : (
+              regularPosts.map((post, index) => (
+                <Card
+                  key={index}
+                  className="group overflow-hidden hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30"
+                  data-aos="fade-up"
+                  data-aos-delay={index * 100}
+                  data-aos-duration="800"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <img
+                      src={post.image}
+                      alt={post.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute top-3 left-3">
+                      <span className="bg-white/90 backdrop-blur-sm text-foreground text-xs px-3 py-1 rounded-full font-medium shadow-sm">
+                        {post.category}
+                      </span>
+                    </div>
+                    <div
+                      className="absolute bottom-0 left-0 right-0 h-1 bg-primary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"
+                    />
+                  </div>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                      <Calendar className="h-3 w-3" />
+                      <span>{new Date(post.date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric'
+                      })}</span>
+                      <span className="mx-1">•</span>
+                      <Clock className="h-3 w-3" />
+                      <span>{post.readTime}</span>
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                      {post.title}
+                    </h3>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                    <p className="text-muted-foreground text-sm line-clamp-3">
+                      {post.excerpt}
+                    </p>
+                  </CardContent>
+                  <CardFooter className="pt-0">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between w-full pt-4 border-t border-border/50">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <User className="h-3 w-3" />
+                        <span>{post.author}</span>
+                      </div>
+                      <Button variant="ghost" size="sm" className="gap-1 text-primary hover:text-primary hover:bg-primary/10 p-0 h-auto w-fit" asChild>
+                        <Link to="/dashboard">
+                          Read more
+                          <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardFooter>
+                </Card>
+              ))
+            )}
           </div>
         </section>
 
         {/* Newsletter CTA */}
         <section
-          className="relative overflow-hidden rounded-2xl bg-slate-900 p-8 md:p-12"
+          className="relative overflow-hidden rounded-2xl bg-slate-900 p-6 sm:p-8 md:p-12"
           data-aos="zoom-in"
           data-aos-duration="1000"
         >
@@ -320,9 +347,9 @@ const Blog = () => {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary min-w-[250px]"
+                className="w-full min-w-0 px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary sm:min-w-[250px]"
               />
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground">
                 Subscribe
               </Button>
             </div>

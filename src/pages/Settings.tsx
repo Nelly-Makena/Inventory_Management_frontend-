@@ -190,7 +190,7 @@ const Settings = () => {
                   </div>
               ) : (
                   <>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="space-y-0.5">
                         <Label>Low Stock Alerts</Label>
                         <p className="text-sm text-muted-foreground">
@@ -203,7 +203,7 @@ const Settings = () => {
                       />
                     </div>
                     <Separator />
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="space-y-0.5">
                         <Label>Overstock Warnings</Label>
                         <p className="text-sm text-muted-foreground">

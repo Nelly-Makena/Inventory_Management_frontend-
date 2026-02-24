@@ -196,7 +196,7 @@ const Admin = () => {
 
           {/* users table */}
           <Card className="card-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Users className="h-5 w-5 text-primary" />
                 User Management
@@ -352,7 +352,7 @@ const Admin = () => {
                     {activities.map((log) => (
                         <div
                             key={log.id}
-                            className="flex items-center justify-between border-b border-border pb-3 last:border-0"
+                            className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-border pb-3 last:border-0"
                         >
                           <div className="flex items-center gap-3">
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-xs font-medium">
@@ -366,7 +366,7 @@ const Admin = () => {
                               <p className="text-xs text-muted-foreground">{log.description}</p>
                             </div>
                           </div>
-                          <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
+                          <span className="text-xs text-muted-foreground whitespace-nowrap sm:ml-4">
                       {formatActivityTime(log.created_at)}
                     </span>
                         </div>
