@@ -145,9 +145,9 @@ const Reports = () => {
                 Track your sales and inventory metrics
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Select value={range} onValueChange={(v) => setRange(v as RangeKey)}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-full sm:w-40">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -160,7 +160,7 @@ const Reports = () => {
               {/* export dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-2" disabled={exporting}>
+                  <Button variant="outline" className="gap-2 w-full sm:w-auto" disabled={exporting}>
                     <Download className="h-4 w-4" />
                     {exporting ? 'Exporting…' : 'Export'}
                     <ChevronDown className="h-3 w-3" />

@@ -246,7 +246,7 @@ const Inventory = () => {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label>Category</Label>
             <Select
@@ -277,7 +277,7 @@ const Inventory = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label>Quantity</Label>
             <Input type="number" min={0} value={form.quantity}
@@ -292,7 +292,7 @@ const Inventory = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
             {/* unit price = what you sell it for */}
             <Label>Selling Price (KES)</Label>
@@ -316,7 +316,7 @@ const Inventory = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label>Min Stock Level</Label>
             <Input type="number" min={0} value={form.min_stock_level}
@@ -337,21 +337,21 @@ const Inventory = () => {
 
           {/* top bar */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-1 gap-4">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                    placeholder="Search products..."
-                    value={search}
+          <div className="flex flex-1 flex-col gap-4 sm:flex-row">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                  placeholder="Search products..."
+                  value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="pl-9"
                 />
               </div>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-48">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
+              <SelectTrigger className="w-full sm:w-48">
+                <Filter className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
                   {categories.map((c) => (

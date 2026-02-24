@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, Users, Award, Zap, Target, Heart, ArrowRight, CheckCircle2, Globe, Shield, Smartphone, TrendingUp } from 'lucide-react';
 import AOS from 'aos';
+import { useAuth } from '@/context/AuthContext';
 import 'aos/dist/aos.css';
 
 const team = [
@@ -66,6 +67,8 @@ const milestones = [
 ];
 
 const About = () => {
+  const { isAuthenticated } = useAuth();
+
   useEffect(() => {
     AOS.init({
       duration: 1000,
@@ -74,6 +77,8 @@ const About = () => {
       easing: 'ease-out-cubic',
     });
   }, []);
+
+  const getStartedPath = isAuthenticated ? '/dashboard' : '/login';
 
   return (
     <DashboardLayout title="About Us">
@@ -187,7 +192,7 @@ const About = () => {
               Kenyan shop — from small kiosks to large supermarkets — has access to smart, 
               intuitive tools that drive efficiency and growth.
             </p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="rounded-lg bg-primary/5 p-4 text-center">
                 <p className="text-2xl font-bold text-primary">East Africa</p>
                 <p className="text-sm text-muted-foreground">Regional Expansion</p>
@@ -285,7 +290,7 @@ const About = () => {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto" data-aos="fade-left" data-aos-delay="400">
               <Button size="lg" asChild>
-                <Link to="/dashboard">
+                <Link to={getStartedPath}>
                   Get Started Free
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
