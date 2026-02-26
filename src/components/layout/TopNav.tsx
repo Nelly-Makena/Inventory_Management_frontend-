@@ -149,8 +149,9 @@ export const TopNav = () => {
                     {user?.email as string ?? 'My Account'}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <NavLink to="/settings">Settings</NavLink>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                       className="text-destructive cursor-pointer"
