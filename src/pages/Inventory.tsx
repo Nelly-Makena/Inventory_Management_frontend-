@@ -42,16 +42,16 @@ interface ProductForm {
   name: string;
   category: number | '';
   supplier: number | '';
-  quantity: number;
-  cost_price: number;
-  unit_price: number;
+  quantity: number | '';
+  cost_price: number | '';
+  unit_price: number | '';
   min_stock_level: number;
   max_stock_level: number;
 }
 
 const emptyForm = (): ProductForm => ({
   name: '', category: '', supplier: '',
-  quantity: 0, cost_price: 0, unit_price: 0,
+  quantity: '', cost_price: '', unit_price: '',
   min_stock_level: 10, max_stock_level: 100,
 });
 
@@ -132,6 +132,17 @@ const Inventory = () => {
 
   const validForm = form.name.trim() && form.category !== '' && form.supplier !== '';
 
+  const toNumber = (v: number | '') => (v === '' ? 0 : v);
+
+  const buildPayload = (f: ProductForm) => ({
+    ...f,
+    category: Number(f.category),
+    supplier: Number(f.supplier),
+    quantity: toNumber(f.quantity),
+    cost_price: toNumber(f.cost_price),
+    unit_price: toNumber(f.unit_price),
+  });
+
   const errMsg = (err: any) => {
     const d = err?.response?.data;
     if (typeof d === 'object')
@@ -143,7 +154,7 @@ const Inventory = () => {
   const handleAdd = async () => {
     setSaving(true);
     try {
-      const res = await api.post<Product>('/api/business/products/', form);
+      const res = await api.post<Product>('/api/business/products/', buildPayload(form));
       setProducts((prev) => [...prev, res.data]);
       toast({ title: 'Product added!' });
       setAddProductOpen(false);
@@ -174,7 +185,10 @@ const Inventory = () => {
     if (!editingProduct) return;
     setSaving(true);
     try {
-      const res = await api.put<Product>(`/api/business/products/${editingProduct.id}/`, form);
+      const res = await api.put<Product>(
+        `/api/business/products/${editingProduct.id}/`,
+        buildPayload(form)
+      );
       setProducts((prev) => prev.map((p) => p.id === editingProduct.id ? res.data : p));
       toast({ title: 'Product updated!' });
       setEditProductOpen(false);
@@ -230,8 +244,10 @@ const Inventory = () => {
   };
 
   // profit margin preview
-  const marginPreview = form.unit_price > 0 && form.cost_price > 0
-      ? `${(((form.unit_price - form.cost_price) / form.unit_price) * 100).toFixed(1)}%`
+  const unitPrice = form.unit_price === '' ? 0 : form.unit_price;
+  const costPrice = form.cost_price === '' ? 0 : form.cost_price;
+  const marginPreview = unitPrice > 0 && costPrice > 0
+      ? `${(((unitPrice - costPrice) / unitPrice) * 100).toFixed(1)}%`
       : '—';
 
   // (avoids focus loss on re-render)
@@ -281,14 +297,18 @@ const Inventory = () => {
           <div className="grid gap-2">
             <Label>Quantity</Label>
             <Input type="number" min={0} value={form.quantity}
-                   onChange={(e) => setField('quantity', Number(e.target.value))} />
+                   onChange={(e) =>
+                     setField('quantity', e.target.value === '' ? '' : Number(e.target.value))
+                   } />
           </div>
           <div className="grid gap-2">
             {/* cost price = what you paid the supplier */}
             <Label>Cost Price (KES)</Label>
             <Input type="number" min={0} value={form.cost_price}
                    placeholder="What you paid"
-                   onChange={(e) => setField('cost_price', Number(e.target.value))} />
+                   onChange={(e) =>
+                     setField('cost_price', e.target.value === '' ? '' : Number(e.target.value))
+                   } />
           </div>
         </div>
 
@@ -298,7 +318,9 @@ const Inventory = () => {
             <Label>Selling Price (KES)</Label>
             <Input type="number" min={0} value={form.unit_price}
                    placeholder="What you charge"
-                   onChange={(e) => setField('unit_price', Number(e.target.value))} />
+                   onChange={(e) =>
+                     setField('unit_price', e.target.value === '' ? '' : Number(e.target.value))
+                   } />
           </div>
           <div className="grid gap-2">
             {/* live margin so the owner can see profitability instantly */}
