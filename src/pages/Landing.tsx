@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import gearImage from '/gear.jpeg';
@@ -136,7 +136,8 @@ const stats = [
 const Landing = () => {
   const navigate = useNavigate();
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logOut } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     AOS.init({
@@ -149,6 +150,15 @@ const Landing = () => {
 
   const handleGetStarted = () => {
     navigate(isAuthenticated ? '/dashboard' : '/login');
+  };
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logOut();
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -182,12 +192,23 @@ const Landing = () => {
               </Link>
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3" data-aos="fade-left" data-aos-delay="200">
-              <Button variant="ghost" asChild className="h-9 px-3 text-sm sm:h-10 sm:px-4 sm:text-base">
-                <Link to="/login">Login</Link>
-              </Button>
+              {isAuthenticated ? (
+                <Button
+                  variant="ghost"
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="h-9 px-3 text-sm sm:h-10 sm:px-4 sm:text-base"
+                >
+                  {isLoggingOut ? 'Logging out…' : 'Logout'}
+                </Button>
+              ) : (
+                <Button variant="ghost" asChild className="h-9 px-3 text-sm sm:h-10 sm:px-4 sm:text-base">
+                  <Link to="/login">Login</Link>
+                </Button>
+              )}
               <Button onClick={handleGetStarted} className="h-9 px-3 text-sm sm:h-10 sm:px-4 sm:text-base">
                 <span className="sm:hidden">Start</span>
-                <span className="hidden sm:inline">Get Started</span>
+                <span className="hidden sm:inline">{isAuthenticated ? 'Dashboard' : 'Get Started'}</span>
               </Button>
             </div>
           </div>
